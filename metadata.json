@@ -1,0 +1,6 @@
+{
+  "name": "ElektronikEdu - Portal Egzaminu Zawodowego ELM.02 & ELM.05",
+  "description": "Interaktywne kompendium wiedzy, warsztat symulacyjny i centrum egzaminacyjne CKE dla technika elektronika (kwalifikacje ELM.02 i ELM.05).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
