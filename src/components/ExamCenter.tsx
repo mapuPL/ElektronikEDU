@@ -17,8 +17,21 @@ import {
   Flame,
   Check,
   Zap,
-  Bookmark
+  Bookmark,
+  Shuffle
 } from 'lucide-react';
+
+// Fisher-Yates algorithm for unbiased array permutation
+const shuffleList = <T,>(list: T[]): T[] => {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr;
+};
 
 export const ExamCenter: React.FC = () => {
   const {
@@ -37,6 +50,8 @@ export const ExamCenter: React.FC = () => {
   const [trainingIndex, setTrainingIndex] = useState<number>(0);
   const [trainingShowHint, setTrainingShowHint] = useState<boolean>(false);
   const [trainingAnswers, setTrainingAnswers] = useState<Record<string, number>>({});
+  const [isRandomOrder, setIsRandomOrder] = useState<boolean>(true);
+  const [shuffleKey, setShuffleKey] = useState<number>(() => Math.random());
 
   // Exam Simulation state
   const [examActive, setExamActive] = useState<boolean>(false);
@@ -49,20 +64,70 @@ export const ExamCenter: React.FC = () => {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(1200); // 20 min default
   const [lastExamResult, setLastExamResult] = useState<ExamAttempt | null>(null);
 
-  // Available categories
-  const categories = useMemo(() => {
-    const set = new Set(EXAM_QUESTIONS.map((q) => q.category));
-    return ['ALL', ...Array.from(set)];
-  }, []);
+  // Qualification-specific statistics computed from persistent user stats (localStorage)
+  const qualStats = useMemo(() => {
+    const elm02Questions = EXAM_QUESTIONS.filter((q) => q.qualification === 'ELM.02');
+    const elm05Questions = EXAM_QUESTIONS.filter((q) => q.qualification === 'ELM.05');
 
-  // Filtered training questions
+    const elm02Answered = elm02Questions.filter((q) => stats.answeredQuestionIds.includes(q.id)).length;
+    const elm02Correct = elm02Questions.filter((q) => stats.correctQuestionIds.includes(q.id)).length;
+    const elm02Accuracy = elm02Answered > 0 ? Math.round((elm02Correct / elm02Answered) * 100) : 0;
+
+    const elm05Answered = elm05Questions.filter((q) => stats.answeredQuestionIds.includes(q.id)).length;
+    const elm05Correct = elm05Questions.filter((q) => stats.correctQuestionIds.includes(q.id)).length;
+    const elm05Accuracy = elm05Answered > 0 ? Math.round((elm05Correct / elm05Answered) * 100) : 0;
+
+    const totalAnswered = stats.answeredQuestionIds.length;
+    const totalCorrect = stats.correctQuestionIds.length;
+    const totalAccuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+    return {
+      elm02: {
+        total: elm02Questions.length,
+        answered: elm02Answered,
+        correct: elm02Correct,
+        accuracy: elm02Accuracy,
+        progressPercent: Math.round((elm02Answered / Math.max(1, elm02Questions.length)) * 100)
+      },
+      elm05: {
+        total: elm05Questions.length,
+        answered: elm05Answered,
+        correct: elm05Correct,
+        accuracy: elm05Accuracy,
+        progressPercent: Math.round((elm05Answered / Math.max(1, elm05Questions.length)) * 100)
+      },
+      total: {
+        allQuestions: EXAM_QUESTIONS.length,
+        answered: totalAnswered,
+        correct: totalCorrect,
+        accuracy: totalAccuracy
+      }
+    };
+  }, [stats.answeredQuestionIds, stats.correctQuestionIds]);
+
+  // Available categories scoped to selected qualification
+  const categories = useMemo(() => {
+    const questionsToScan =
+      filterQual === 'ALL'
+        ? EXAM_QUESTIONS
+        : EXAM_QUESTIONS.filter((q) => q.qualification === filterQual);
+    const set = new Set(questionsToScan.map((q) => q.category));
+    return ['ALL', ...Array.from(set)];
+  }, [filterQual]);
+
+  // Filtered and randomly shuffled training questions
   const trainingQuestions = useMemo(() => {
-    return EXAM_QUESTIONS.filter((q) => {
+    const filtered = EXAM_QUESTIONS.filter((q) => {
       if (filterQual !== 'ALL' && q.qualification !== filterQual) return false;
       if (filterCategory !== 'ALL' && q.category !== filterCategory) return false;
       return true;
     });
-  }, [filterQual, filterCategory]);
+
+    if (isRandomOrder) {
+      return shuffleList(filtered);
+    }
+    return filtered;
+  }, [filterQual, filterCategory, isRandomOrder, shuffleKey]);
 
   const activeTrainingQ = trainingQuestions[trainingIndex] || trainingQuestions[0];
 
@@ -87,8 +152,8 @@ export const ExamCenter: React.FC = () => {
     if (filterQual !== 'ALL') {
       pool = pool.filter((q) => q.qualification === filterQual);
     }
-    // Shuffle pool
-    const shuffled = pool.sort(() => 0.5 - Math.random());
+    // True Fisher-Yates shuffle
+    const shuffled = shuffleList(pool);
     const selected = shuffled.slice(0, Math.min(count, pool.length));
 
     setExamQuestions(selected);
@@ -188,53 +253,159 @@ export const ExamCenter: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
+      {/* STATYSTYKI KWALIFIKACJI (ELM.02 vs ELM.05) - ZAPISANE W LOCALSTORAGE       */}
+      {/* ========================================================================= */}
+      {!examActive && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Karta ELM.02 */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-950/30 via-slate-900 to-slate-900 border border-cyan-800/40 shadow-xs">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="font-mono font-bold text-xs text-cyan-400">Kwalifikacja ELM.02</span>
+              </div>
+              <span className="text-[11px] font-mono text-cyan-300 font-semibold px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/50">
+                Skuteczność: {qualStats.elm02.accuracy}%
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 font-medium">
+              Montaż oraz instalowanie układów i urządzeń elektronicznych
+            </p>
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+              <span>
+                Rozwiązane: <strong className="text-white">{qualStats.elm02.answered}</strong> / {qualStats.elm02.total} pytań
+              </span>
+              <span>
+                Poprawne: <strong className="text-emerald-400">{qualStats.elm02.correct}</strong>
+              </span>
+            </div>
+            <div className="mt-2 w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
+                style={{ width: `${qualStats.elm02.progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Karta ELM.05 */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-teal-950/30 via-slate-900 to-slate-900 border border-teal-800/40 shadow-xs">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse" />
+                <span className="font-mono font-bold text-xs text-teal-400">Kwalifikacja ELM.05</span>
+              </div>
+              <span className="text-[11px] font-mono text-teal-300 font-semibold px-2 py-0.5 rounded bg-teal-950/60 border border-teal-800/50">
+                Skuteczność: {qualStats.elm05.accuracy}%
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 font-medium">
+              Eksploatacja i serwis urządzeń elektronicznych
+            </p>
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
+              <span>
+                Rozwiązane: <strong className="text-white">{qualStats.elm05.answered}</strong> / {qualStats.elm05.total} pytań
+              </span>
+              <span>
+                Poprawne: <strong className="text-emerald-400">{qualStats.elm05.correct}</strong>
+              </span>
+            </div>
+            <div className="mt-2 w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+              <div
+                className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all duration-500"
+                style={{ width: `${qualStats.elm05.progressPercent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* 1. TRYB TRENINGOWY (LEARNING & DRILL)                                      */}
       {/* ========================================================================= */}
       {selectedExamMode === 'training' && !examFinished && (
         <div className="space-y-6">
           {/* Filters Bar */}
           <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5" />
-                Kwalifikacja:
-              </span>
-              {(['ALL', 'ELM.02', 'ELM.05'] as QualificationId[]).map((q) => (
-                <button
-                  key={q}
-                  onClick={() => {
-                    setFilterQual(q);
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Filter className="w-3.5 h-3.5" />
+                  Kwalifikacja:
+                </span>
+                {(['ALL', 'ELM.02', 'ELM.05'] as QualificationId[]).map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => {
+                      setFilterQual(q);
+                      setFilterCategory('ALL');
+                      setTrainingIndex(0);
+                      setShuffleKey(Math.random());
+                    }}
+                    className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all ${
+                      filterQual === q
+                        ? 'bg-cyan-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {q === 'ALL' ? 'Wszystkie' : q}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Kategoria:
+                </span>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => {
+                    setFilterCategory(e.target.value);
                     setTrainingIndex(0);
+                    setShuffleKey(Math.random());
                   }}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all ${
-                    filterQual === q
-                      ? 'bg-cyan-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
+                  className="px-2.5 py-1 text-xs rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                 >
-                  {q === 'ALL' ? 'Wszystkie' : q}
-                </button>
-              ))}
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c === 'ALL' ? 'Wszystkie kategorie' : c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
+            {/* Randomization Controls */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Kategoria:
-              </span>
-              <select
-                value={filterCategory}
-                onChange={(e) => {
-                  setFilterCategory(e.target.value);
+              <button
+                onClick={() => {
+                  setIsRandomOrder((prev) => !prev);
                   setTrainingIndex(0);
+                  setShuffleKey(Math.random());
                 }}
-                className="px-2.5 py-1 text-xs rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-all flex items-center gap-1.5 ${
+                  isRandomOrder
+                    ? 'bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-700'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border border-transparent'
+                }`}
+                title="Przełącz losową kolejność pytań w trybie treningowym"
               >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c === 'ALL' ? 'Wszystkie kategorie' : c}
-                  </option>
-                ))}
-              </select>
+                <Shuffle className="w-3.5 h-3.5" />
+                <span>{isRandomOrder ? 'Kolejność: Losowa' : 'Kolejność: Liniowa'}</span>
+              </button>
+
+              {isRandomOrder && (
+                <button
+                  onClick={() => {
+                    setShuffleKey(Math.random());
+                    setTrainingIndex(0);
+                  }}
+                  className="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                  title="Wylosuj nową kolejność pytań"
+                >
+                  <RotateCcw className="w-3 h-3 text-cyan-500" />
+                  <span>Wymieszaj</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -333,14 +504,21 @@ export const ExamCenter: React.FC = () => {
                 </div>
               )}
 
-              {/* Explanation after answering */}
+              {/* Wyjaśnienie eksperta CKE po zaznaczeniu odpowiedzi */}
               {trainingAnswers[activeTrainingQ.id] !== undefined && (
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 animate-in fade-in">
-                  <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    Wyjaśnienie krok po kroku:
-                  </p>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                <div className="p-4 rounded-xl bg-cyan-950/20 dark:bg-cyan-950/35 border border-cyan-800/40 dark:border-cyan-700/50 space-y-2.5 animate-in fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyan-800/20 dark:border-cyan-800/40 pb-2">
+                    <p className="text-xs font-bold text-cyan-700 dark:text-cyan-300 flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-cyan-500" />
+                      <span>Wyjaśnienie eksperta CKE</span>
+                    </p>
+                    {activeTrainingQ.officialRef && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border border-cyan-500/20">
+                        Wymaganie egzaminacyjne: {activeTrainingQ.officialRef}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line font-medium">
                     {activeTrainingQ.explanation}
                   </p>
                 </div>
@@ -803,9 +981,12 @@ export const ExamCenter: React.FC = () => {
                     </div>
 
                     {/* Detailed CKE Explanation */}
-                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300">
-                      <strong className="text-slate-900 dark:text-white">Wyjaśnienie: </strong>
-                      {q.explanation}
+                    <div className="p-3.5 rounded-xl bg-cyan-950/20 dark:bg-cyan-950/30 border border-cyan-800/40 dark:border-cyan-700/40 text-xs text-slate-700 dark:text-slate-200 space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-cyan-700 dark:text-cyan-300">
+                        <Award className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+                        <span>Wyjaśnienie eksperta CKE:</span>
+                      </div>
+                      <p className="leading-relaxed whitespace-pre-line">{q.explanation}</p>
                     </div>
                   </div>
                 );

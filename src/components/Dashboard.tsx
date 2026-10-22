@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { CURRICULUM_MODULES } from '../data/curriculumData';
 import { EXAM_QUESTIONS } from '../data/examQuestions';
@@ -31,12 +31,17 @@ export const Dashboard: React.FC = () => {
     recordQuestionAnswer
   } = useApp();
 
-  // Find daily question (first unanswered or question 0)
-  const dailyQuestion = EXAM_QUESTIONS[0];
+  // Find daily question (dynamically seeded by current day and prioritized from unanswered pool)
+  const dailyQuestion = useMemo(() => {
+    const today = new Date();
+    const daySeed = today.getFullYear() * 366 + today.getMonth() * 31 + today.getDate();
+    const unanswered = EXAM_QUESTIONS.filter((q) => !stats.answeredQuestionIds.includes(q.id));
+    const pool = unanswered.length > 0 ? unanswered : EXAM_QUESTIONS;
+    return pool[daySeed % pool.length];
+  }, [stats.answeredQuestionIds]);
+
   const [dailyAnswerSelected, setDailyAnswerSelected] = useState<number | null>(null);
-  const [dailyAnswered, setDailyAnswered] = useState(
-    stats.answeredQuestionIds.includes(dailyQuestion.id)
-  );
+  const dailyAnswered = stats.answeredQuestionIds.includes(dailyQuestion.id) || dailyAnswerSelected !== null;
 
   // Compute progress for ELM.02 and ELM.05
   const elm02Lessons = CURRICULUM_MODULES.filter((m) => m.qualificationId === 'ELM.02').flatMap(
@@ -62,7 +67,6 @@ export const Dashboard: React.FC = () => {
   const handleDailySubmit = (optionIndex: number) => {
     if (dailyAnswered) return;
     setDailyAnswerSelected(optionIndex);
-    setDailyAnswered(true);
     const isCorrect = optionIndex === dailyQuestion.correctAnswer;
     recordQuestionAnswer(dailyQuestion.id, isCorrect);
   };
