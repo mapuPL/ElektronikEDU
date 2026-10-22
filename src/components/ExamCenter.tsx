@@ -621,11 +621,12 @@ export const ExamCenter: React.FC = () => {
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               Wybierz liczbę pytań w arkuszu:
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { count: 10, time: '15 min', label: 'Szybki test (10)' },
-                { count: 20, time: '30 min', label: 'Średni arkusz (20)' },
-                { count: EXAM_QUESTIONS.length, time: '60 min', label: `Pełna baza (${EXAM_QUESTIONS.length})` }
+                { count: 20, time: '30 min', label: 'Średni test (20)' },
+                { count: 40, time: '60 min', label: 'Arkusz CKE (40)' },
+                { count: EXAM_QUESTIONS.length, time: '120 min', label: `Wszystkie (${EXAM_QUESTIONS.length})` }
               ].map((opt) => (
                 <button
                   key={opt.count}

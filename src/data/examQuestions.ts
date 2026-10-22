@@ -1,5 +1,6 @@
 import { QuizQuestion } from '../types';
 import { ELM02_DIGITAL_SMD_QUESTIONS } from './elm02DigitalSmdQuestions';
+import { ELM05_DIGITAL_SMD_QUESTIONS } from './elm05DigitalSmdQuestions';
 
 const BASE_EXAM_QUESTIONS: QuizQuestion[] = [
   // =========================================================================
@@ -457,5 +458,6 @@ const BASE_EXAM_QUESTIONS: QuizQuestion[] = [
 
 export const EXAM_QUESTIONS: QuizQuestion[] = [
   ...BASE_EXAM_QUESTIONS,
-  ...ELM02_DIGITAL_SMD_QUESTIONS
+  ...ELM02_DIGITAL_SMD_QUESTIONS,
+  ...ELM05_DIGITAL_SMD_QUESTIONS
 ];
