@@ -64,6 +64,30 @@ export const INITIAL_BADGES: Badge[] = [
     iconName: 'Flame',
     category: 'streak',
     xpValue: 80
+  },
+  {
+    id: 'badge-breadboard',
+    title: 'Gwarant Ciągłości',
+    description: 'Znajdź i skoryguj błędy montażowe na wirtualnej płytce stykowej',
+    iconName: 'Wrench',
+    category: 'simulator',
+    xpValue: 60
+  },
+  {
+    id: 'badge-troubleshooter',
+    title: 'Mistrz Diagnostyki ELM.05',
+    description: 'Prawidłowo zdiagnozuj usterkę układu za pomocą pomiarów multimetrem',
+    iconName: 'ShieldCheck',
+    category: 'simulator',
+    xpValue: 60
+  },
+  {
+    id: 'badge-oscilloscope',
+    title: 'Wirtuoz Oscyloskopu',
+    description: 'Wykonaj pomiary napięcia Vpp i częstotliwości z podziałki oscyloskopu',
+    iconName: 'Zap',
+    category: 'simulator',
+    xpValue: 50
   }
 ];
 

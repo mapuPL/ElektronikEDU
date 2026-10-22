@@ -19,8 +19,10 @@ import {
   Flame,
   CheckCircle2,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Activity
 } from 'lucide-react';
+import { OscilloscopeSimulator } from './OscilloscopeSimulator';
 
 export const Workshop: React.FC = () => {
   const {
@@ -301,6 +303,16 @@ export const Workshop: React.FC = () => {
             }`}
           >
             Dobór Rezystora LED
+          </button>
+          <button
+            onClick={() => setSelectedWorkshopTool('oscilloscope')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              selectedWorkshopTool === 'oscilloscope'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            Oscyloskop i Generator
           </button>
         </div>
       </div>
@@ -1296,6 +1308,11 @@ export const Workshop: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* 5. OSCYLOSKOP I GENERATOR SYGNAŁOWY                                       */}
+      {/* ========================================================================= */}
+      {selectedWorkshopTool === 'oscilloscope' && <OscilloscopeSimulator />}
     </div>
   );
 };

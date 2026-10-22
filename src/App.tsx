@@ -10,6 +10,8 @@ import { ExamCenter } from './components/ExamCenter';
 import { FormulasReference } from './components/FormulasReference';
 import { CurriculumExplorer } from './components/CurriculumExplorer';
 import { Gamification } from './components/Gamification';
+import { VirtualTroubleshooter } from './components/VirtualTroubleshooter';
+import { BreadboardTrainer } from './components/BreadboardTrainer';
 
 const MainLayout: React.FC = () => {
   const { activeTab } = useApp();
@@ -31,6 +33,8 @@ const MainLayout: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'compendium' && <Compendium />}
+          {activeTab === 'troubleshooter' && <VirtualTroubleshooter />}
+          {activeTab === 'breadboard' && <BreadboardTrainer />}
           {activeTab === 'workshop' && <Workshop />}
           {activeTab === 'exam' && <ExamCenter />}
           {activeTab === 'formulas' && <FormulasReference />}

@@ -9,7 +9,9 @@ import {
   FileText,
   Trophy,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  ShieldAlert,
+  Layers
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -43,9 +45,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       badge: `${stats.completedLessonIds.length} opan.`
     },
     {
+      id: 'troubleshooter',
+      label: 'Wirtualny Serwisant',
+      sublabel: 'Diagnostyka usterek ELM.05',
+      icon: ShieldAlert,
+      badge: 'ELM.05'
+    },
+    {
+      id: 'breadboard',
+      label: 'Trener Płytki Stykowej',
+      sublabel: 'Weryfikacja montażu THT',
+      icon: Layers,
+      badge: 'Gra'
+    },
+    {
       id: 'workshop',
       label: 'Warsztat i Symulatory',
-      sublabel: 'Ohm, kody paskowe, bramki',
+      sublabel: 'Ohm, kody, bramki, oscyloskop',
       icon: Wrench
     },
     {

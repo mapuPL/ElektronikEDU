@@ -8,11 +8,14 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar, isMobileSidebarOpen }) => {
-  const { stats, currentLevelInfo, toggleTheme, setActiveTab, setSelectedLessonId } = useApp();
+  const { stats, currentLevelInfo, toggleTheme, setActiveTab, setSelectedLessonId, setSelectedWorkshopTool } = useApp();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const quickSearchResults = [
+    { title: 'Wirtualny Serwisant (Diagnostyka Usterek ELM.05)', type: 'Diagnostyka', tab: 'troubleshooter' as const, id: 'troubleshooter' },
+    { title: 'Trener Płytki Stykowej (Breadboard)', type: 'Montaż THT', tab: 'breadboard' as const, id: 'breadboard' },
+    { title: 'Wirtualny Oscyloskop i Generator Sygnałowy', type: 'Pomiary', tab: 'workshop' as const, id: 'oscilloscope' },
     { title: 'Prawo Ohma i bilans mocy', type: 'Wzór', tab: 'formulas' as const, id: 'f-ohm' },
     { title: 'Dzielnik napięcia', type: 'Lekcja', tab: 'compendium' as const, id: 'lesson-dzielnik-napiecia' },
     { title: 'Kalkulator kodów paskowych rezystorów', type: 'Warsztat', tab: 'workshop' as const, id: 'resistor' },
@@ -26,6 +29,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar, isMobileS
     setActiveTab(result.tab);
     if (result.tab === 'compendium') {
       setSelectedLessonId(result.id);
+    }
+    if (result.tab === 'workshop') {
+      if (result.id === 'oscilloscope' || result.id === 'resistor' || result.id === 'logic') {
+        setSelectedWorkshopTool(result.id as any);
+      }
     }
     setSearchOpen(false);
     setSearchQuery('');

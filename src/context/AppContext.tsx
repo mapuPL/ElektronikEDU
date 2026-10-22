@@ -6,6 +6,8 @@ export type NavigationTab =
   | 'dashboard' 
   | 'compendium' 
   | 'workshop' 
+  | 'troubleshooter'
+  | 'breadboard'
   | 'exam' 
   | 'formulas' 
   | 'curriculum' 
@@ -24,8 +26,8 @@ interface AppContextType {
   setActiveTab: (tab: NavigationTab) => void;
   selectedLessonId: string | null;
   setSelectedLessonId: (id: string | null) => void;
-  selectedWorkshopTool: 'ohm' | 'resistor' | 'logic' | 'led';
-  setSelectedWorkshopTool: (tool: 'ohm' | 'resistor' | 'logic' | 'led') => void;
+  selectedWorkshopTool: 'ohm' | 'resistor' | 'logic' | 'led' | 'oscilloscope';
+  setSelectedWorkshopTool: (tool: 'ohm' | 'resistor' | 'logic' | 'led' | 'oscilloscope') => void;
   selectedExamMode: 'training' | 'exam';
   setSelectedExamMode: (mode: 'training' | 'exam') => void;
   badges: Badge[];
@@ -61,7 +63,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
-  const [selectedWorkshopTool, setSelectedWorkshopTool] = useState<'ohm' | 'resistor' | 'logic' | 'led'>('ohm');
+  const [selectedWorkshopTool, setSelectedWorkshopTool] = useState<'ohm' | 'resistor' | 'logic' | 'led' | 'oscilloscope'>('ohm');
   const [selectedExamMode, setSelectedExamMode] = useState<'training' | 'exam'>('training');
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
 

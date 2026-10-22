@@ -15,7 +15,9 @@ import {
   Clock,
   Layers,
   Wrench,
-  HelpCircle
+  HelpCircle,
+  ShieldAlert,
+  Activity
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -381,6 +383,64 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="space-y-2.5">
+              <button
+                onClick={() => {
+                  setActiveTab('troubleshooter');
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 transition-colors text-left group"
+              >
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 shrink-0">
+                  <ShieldAlert className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
+                    Wirtualny Serwisant (ELM.05)
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    Diagnozuj usterki multimetrem na schematach
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('breadboard');
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 transition-colors text-left group"
+              >
+                <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500 shrink-0">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-cyan-500 transition-colors">
+                    Trener Płytki Stykowej
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    Wyszukaj błędy montażu i odwrócone diody
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('workshop');
+                  setSelectedWorkshopTool('oscilloscope');
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 transition-colors text-left group"
+              >
+                <div className="p-2 rounded-lg bg-teal-500/10 text-teal-500 shrink-0">
+                  <Activity className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-teal-500 transition-colors">
+                    Oscyloskop Cyfrowy i Generator
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    Badaj przebiegi Vpp, Vrms i podstawę czasu
+                  </p>
+                </div>
+              </button>
+
               <button
                 onClick={() => {
                   setActiveTab('workshop');
